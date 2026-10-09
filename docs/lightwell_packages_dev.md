@@ -4,7 +4,7 @@ The package mirror is filled by `external-repos import-lightwell-packages`, whic
 
 ## Apply dev seed data
 
-The seed is not applied by `dbmigrate`. `scripts/create_lightwell_repo.sh` creates the Pulp repositories, imports them into the app, imports the Pulp catalog into the package mirror, and then loads vulnerabilities, advisories, and package rows onto those repositories:
+The seed is not applied by `dbmigrate`. `scripts/create_lightwell_repo.sh` creates the Pulp repositories, imports them into the app, loads vulnerabilities, advisories, and package rows from SQL (so Pulp can be seeded from those coordinates), uploads that catalog into Pulp, then runs `import-lightwell-packages --force` so the mirror matches Pulp:
 
 ```bash
 ./scripts/create_lightwell_repo.sh
@@ -16,16 +16,16 @@ Packages are written onto the repositories from `pkg/external_repos/lightwell_re
 
 | Name | Packages |
 | --- | --- |
-| `lightwell/java/validated` | Upstream versions, empty release. No advisories. |
+| `lightwell/java/validated` | Catalog versions from `validated_catalog` in `db/seeds/lightwell_packages.sql`. Empty release. No advisories. |
 | `lightwell/java/remediated` | Advisory `fixed_versions`, including `rhlw`. |
-| `lightwell/python/validated` | Upstream versions, empty release. No advisories. |
+| `lightwell/python/validated` | Catalog versions from `validated_catalog` in `db/seeds/lightwell_packages.sql`. Empty release. No advisories. |
 | `lightwell/python/remediated` | Advisory `fixed_versions`, including `rhlw`. |
 
-Each version row has its own summary, license, project URL, and author. Python rows also set `author_email`. Maven `author_email` is empty. There is no npm seed repository. JavaScript and C# advisories stay on `lightwell/seed`.
+Each version row has its own summary, license, project URL, and author. Python rows also set author_email. Maven author_email is empty. There is no npm seed repository. JavaScript and C# advisories stay on `lightwell/seed`.
 
-The package seed runs after `import-lightwell-packages` and replaces the mirror rows for those four repositories, so the lists match the advisories. Pulp still has the catalog used by the endpoints that read Pulp directly.
+The SQL package seed defines which versions go into Pulp (Maven POMs plus wheels under `scripts/fixtures/python_wheels/`). `import-lightwell-packages` then replaces those seed rows with the mirror import, so `/lightwell/packages` uses the same path as stage/prod. Endpoints that read Pulp or Tang directly use the uploaded catalog.
 
-`scripts/seed_lightwell_dev.sh` reloads only the database seed. It skips the vulnerability inserts when those rows already exist. The four repositories must already be present.
+`scripts/seed_lightwell_dev.sh` reloads only the database seed. It skips the vulnerability inserts when those rows already exist. The four repositories must already be present. After changing package coordinates, re-run `create_lightwell_repo.sh` (or re-seed Pulp and `import-lightwell-packages --force`) so Pulp and the mirror stay aligned.
 
 ## Package import job
 
