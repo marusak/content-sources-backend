@@ -16,7 +16,8 @@ type CoverageReportResponse struct {
 	Unmatched                int                        `json:"unmatched"`                     // Number of packages with name not found
 	EcosystemCoverageSummary []EcosystemCoverageSummary `json:"ecosystem_coverage_summary"`    // Per-ecosystem breakdown
 	CveSummary               CveCount                   `json:"cve_summary"`                   // Count of CVEs fixed in remediated repos across covered packages, by severity
-	AnalysisTaskError        string                     `json:"analysis_task_error,omitempty"` // Error if coverage analysis task failed
+	AnalysisTaskError        string                     `json:"analysis_task_error,omitempty"` // Why coverage analysis failed; a parser trace when the manifest could not be read
+	ParseLogAvailable        bool                       `json:"parse_log_available,omitempty"` // True when a parser log of ignored entries can be downloaded
 	AnalysisTaskUUID         string                     `json:"analysis_task_uuid"`            // UUID of the coverage analysis task
 }
 

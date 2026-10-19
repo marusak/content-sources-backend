@@ -29,7 +29,7 @@ NETWORK = os.environ.get("COMPOSE_PROJECT_NAME", "cs") + "_default"
 
 def podman(*args, env=None, check=True):
     result = subprocess.run(
-        ["podman", *args], env=env, text=True, capture_output=True, check=False
+        ["docker", *args], env=env, text=True, capture_output=True, check=False
     )
     if check and result.returncode:
         raise RuntimeError(result.stderr.strip() or result.stdout.strip())
@@ -37,9 +37,8 @@ def podman(*args, env=None, check=True):
 
 
 def container_exists(name):
-    result = podman("container", "exists", name, check=False)
-    if result.returncode not in (0, 1) or (result.returncode and result.stderr.strip()):
-        raise RuntimeError(result.stderr.strip() or "Podman could not check containers")
+    result = podman("inspect", name, check=False)
+    print(result)
     return result.returncode == 0
 
 

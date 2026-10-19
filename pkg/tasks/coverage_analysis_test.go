@@ -8,12 +8,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"testing"
 
 	"github.com/content-services/content-sources-backend/pkg/api"
 	"github.com/content-services/content-sources-backend/pkg/clients/pulp_client"
 	"github.com/content-services/content-sources-backend/pkg/clients/s3_client"
 	"github.com/content-services/content-sources-backend/pkg/config"
+	"github.com/content-services/content-sources-backend/pkg/coverage/parser"
 	"github.com/content-services/content-sources-backend/pkg/dao"
 	"github.com/content-services/content-sources-backend/pkg/models"
 	"github.com/content-services/content-sources-backend/pkg/tasks/payloads"
@@ -157,6 +159,8 @@ func (s *CoverageAnalysisSuite) TestCoverageAnalysis() {
 		byName[result.Name] = savedParams.PackageCVEs[i].Count.Critical
 	}
 	assert.Equal(s.T(), 1, savedParams.SkippedEntries)
+	assert.Contains(s.T(), savedParams.ParseLog, `Entry "invalid" is not a valid purl`)
+	assert.Contains(s.T(), savedParams.ParseLog, "Parsing file manifest.csv")
 	assert.Equal(s.T(), 1, byName["commons-io"], "the java package should carry the remediated-repo CVE")
 	assert.Equal(s.T(), 0, byName["flask"])
 }
@@ -228,7 +232,8 @@ func (s *CoverageAnalysisSuite) TestCoverageAnalysisFilenameUnsupported() {
 
 	err := s.newTask(ctx, &payload).Run()
 	require.Error(s.T(), err)
-	assert.Contains(s.T(), err.Error(), "parse manifest")
+	assert.Contains(s.T(), err.Error(), "Could not determine the manifest format")
+	assert.Contains(s.T(), err.Error(), "Inspecting file contents")
 }
 
 func (s *CoverageAnalysisSuite) TestCoverageAnalysisManifestEmpty() {
@@ -252,6 +257,28 @@ func (s *CoverageAnalysisSuite) TestCoverageAnalysisNoPURLs() {
 	require.Error(s.T(), err)
 	assert.Contains(s.T(), err.Error(), "Package URL")
 	assert.Contains(s.T(), err.Error(), "1 package entries")
+}
+
+func (s *CoverageAnalysisSuite) TestCoverageAnalysisStoresOverflowParserLog() {
+	ctx := context.Background()
+	reportUUID := uuid.NewString()
+	var body strings.Builder
+	body.WriteString("packageurl\n")
+	for i := 0; i < parser.FailureWarningLimit+1; i++ {
+		fmt.Fprintf(&body, "not-a-purl-%d\n", i)
+	}
+	payload := s.mockFetchManifest(ctx, reportUUID, "packages.csv", []byte(body.String()))
+	overflow := fmt.Sprintf("not-a-purl-%d", parser.FailureWarningLimit)
+	s.mockDaoRegistry.CoverageReport.On("SetParseLog", ctx, reportUUID, mock.MatchedBy(func(logText string) bool {
+		return strings.Contains(logText, `Entry "not-a-purl-0" is not a valid purl`) &&
+			strings.Contains(logText, `Entry "`+overflow+`" is not a valid purl`)
+	})).Return(nil).Once()
+
+	err := s.newTask(ctx, &payload).Run()
+	require.Error(s.T(), err)
+	assert.Contains(s.T(), err.Error(), "... and 1 more ignored entries")
+	assert.Contains(s.T(), err.Error(), "Package URL")
+	assert.NotContains(s.T(), err.Error(), overflow)
 }
 
 func (s *CoverageAnalysisSuite) TestCoverageAnalysisCatalogLoadFails() {

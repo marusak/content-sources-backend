@@ -37,7 +37,7 @@ func TestMain(m *testing.M) {
 func TestDetectFormat_POM(t *testing.T) {
 	cases := []string{"pom.xml", "POM.XML", "path/to/pom.xml", "foo-1.0.pom"}
 	for _, name := range cases {
-		format, err := detectFormat(name, bufio.NewReader(strings.NewReader("")))
+		format, err := detectFormat(name, bufio.NewReader(strings.NewReader("")), nil)
 		require.NoError(t, err, name)
 		assert.Equal(t, FormatPOM, format, name)
 	}
@@ -336,7 +336,7 @@ func TestPackagesFromEffective(t *testing.T) {
 				GroupID: "org.transitive", ArtifactID: "from-bom", Version: "4.5.6",
 			},
 		},
-	}, new(int))
+	}, newTrace())
 	assert.Equal(t, []Package{
 		{Ecosystem: EcosystemJava, Namespace: "org.slf4j", Name: "slf4j-api", Version: "1.7.36"},
 		{Ecosystem: EcosystemJava, Namespace: "junit", Name: "junit", Version: "4.13.2"},

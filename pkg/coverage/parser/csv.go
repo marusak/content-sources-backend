@@ -9,13 +9,15 @@ import (
 )
 
 // parseCSV streams rows and extracts packages from a packageurl column (header may be preceded by metadata rows).
-func parseCSV(r io.Reader, skipped *int) ([]Package, error) {
+func parseCSV(r io.Reader, tr *trace) ([]Package, error) {
 	reader := csv.NewReader(r)
 	reader.FieldsPerRecord = -1
 	reader.LazyQuotes = true
 
 	purlCol := -1
 	var packages []Package
+	dataRows := 0
+	loggedHeaderSearch := false
 
 	for {
 		record, err := reader.Read()
@@ -23,7 +25,7 @@ func parseCSV(r io.Reader, skipped *int) ([]Package, error) {
 			break
 		}
 		if err != nil {
-			return nil, fmt.Errorf("CSV read error: %w", err)
+			return nil, fmt.Errorf("could not read CSV: %w", err)
 		}
 
 		if purlCol < 0 {
@@ -33,28 +35,35 @@ func parseCSV(r io.Reader, skipped *int) ([]Package, error) {
 					break
 				}
 			}
+			if purlCol >= 0 {
+				tr.note("Selecting column packageurl, ignoring all other columns")
+			} else if !loggedHeaderSearch {
+				tr.note("Looking for a packageurl column")
+				loggedHeaderSearch = true
+			}
 			continue
 		}
 
+		dataRows++
 		if purlCol >= len(record) {
-			*skipped++
+			tr.skip("Entry %q is missing the packageurl column", "")
 			continue
 		}
 		purl := strings.TrimSpace(record[purlCol])
 		if purl == "" {
-			*skipped++
+			tr.skip("Entry %q is empty", purl)
 			continue
 		}
 		if pkg := parsePURL(purl); pkg != nil {
 			packages = append(packages, *pkg)
 		} else {
-			*skipped++
+			tr.skip("Entry %q is not a valid purl", purl)
 		}
 	}
 
 	if purlCol < 0 {
-		return nil, fmt.Errorf("CSV missing required 'packageurl' header column")
+		return nil, errors.New("CSV is missing the required packageurl column")
 	}
-
+	tr.note("%d lines found", dataRows)
 	return packages, nil
 }

@@ -120,6 +120,24 @@ func (suite *CoverageReportSuite) TestGetCoverageReport() {
 	assert.Equal(t, expected.Total, response.Total)
 }
 
+func (suite *CoverageReportSuite) TestGetCoverageReportParseLog() {
+	t := suite.T()
+	orgID := test_handler.MockOrgId
+	reportUUID := "550e8400-e29b-41d4-a716-446655440000"
+	parseLog := "Parsing file foo.csv\nWARNING: Entry \"foo-bar\" is not a valid purl\n"
+
+	suite.reg.CoverageReport.On("FetchParseLog", test.MockCtx(), orgID, reportUUID).Return(parseLog, nil)
+
+	req := httptest.NewRequest(http.MethodGet, fmt.Sprintf("%s/coverage_reports/%s/parse_log", api.FullRootPath(), reportUUID), nil)
+	req.Header.Set(api.IdentityHeader, test_handler.EncodedIdentity(t))
+
+	code, body, err := suite.serveCoverageReportRouter(req, true, true)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, code)
+	assert.Equal(t, parseLog, string(body))
+	assert.Contains(t, string(body), `Entry "foo-bar" is not a valid purl`)
+}
+
 func (suite *CoverageReportSuite) TestGetCoverageReportNotFound() {
 	t := suite.T()
 	orgID := test_handler.MockOrgId

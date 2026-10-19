@@ -27,33 +27,34 @@ func (f spdxPURLFields) purl() string {
 }
 
 // parseSPDX dispatches SPDX 2/3 JSON or SPDX 2 tag-value (SPDXVersion:) from the start of the stream.
-func parseSPDX(r *bufio.Reader) ([]Package, int, error) {
+func parseSPDX(r *bufio.Reader, tr *trace) ([]Package, error) {
 	start, err := peekSBOMStart(r)
 	if err != nil {
-		return nil, 0, fmt.Errorf("reading SPDX SBOM: %w", err)
+		return nil, fmt.Errorf("reading SPDX SBOM: %w", err)
 	}
 	switch start {
 	case '{', '[':
-		return parseSPDXJSON(r)
+		tr.note("Content is JSON")
+		return parseSPDXJSON(r, tr)
 	default:
 		peek, _ := r.Peek(256)
 		if strings.Contains(string(peek), "SPDXVersion:") {
-			return parseSPDXTagValue(r)
+			tr.note("Content is SPDX tag-value")
+			return parseSPDXTagValue(r, tr)
 		}
-		return nil, 0, fmt.Errorf("unsupported SPDX encoding (supported: JSON, tag-value)")
+		return nil, fmt.Errorf("unsupported SPDX encoding (supported: JSON, tag-value)")
 	}
 }
 
 // parseSPDXJSON token-walks a 2.x packages list or a 3.x @graph without materializing skipped fields.
-func parseSPDXJSON(r io.Reader) ([]Package, int, error) {
+func parseSPDXJSON(r io.Reader, tr *trace) ([]Package, error) {
 	dec := json.NewDecoder(r)
-	var skipped int
-	pkgs, err := parseSPDXJSONValue(dec, true, &skipped)
-	return pkgs, skipped, wrapParse("SPDX JSON", err)
+	pkgs, err := parseSPDXJSONValue(dec, true, tr)
+	return pkgs, wrapParse("SPDX JSON", err)
 }
 
 // parseSPDXJSONValue walks a JSON value. isRoot is true only for the document so @graph/packages are visited once.
-func parseSPDXJSONValue(dec *json.Decoder, isRoot bool, skipped *int) ([]Package, error) {
+func parseSPDXJSONValue(dec *json.Decoder, isRoot bool, tr *trace) ([]Package, error) {
 	tok, err := dec.Token()
 	if err != nil {
 		return nil, err
@@ -66,7 +67,7 @@ func parseSPDXJSONValue(dec *json.Decoder, isRoot bool, skipped *int) ([]Package
 		return nil, nil
 	}
 	if delim == '{' {
-		return parseSPDXJSONObject(dec, isRoot, skipped)
+		return parseSPDXJSONObject(dec, isRoot, tr)
 	}
 	if delim != '[' {
 		return nil, fmt.Errorf("expected JSON object or array, got %v", tok)
@@ -74,7 +75,7 @@ func parseSPDXJSONValue(dec *json.Decoder, isRoot bool, skipped *int) ([]Package
 
 	var pkgs []Package
 	for dec.More() {
-		extracted, err := parseSPDXJSONValue(dec, false, skipped)
+		extracted, err := parseSPDXJSONValue(dec, false, tr)
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +86,7 @@ func parseSPDXJSONValue(dec *json.Decoder, isRoot bool, skipped *int) ([]Package
 }
 
 // parseSPDXJSONObject streams one object whose opening '{' was already consumed.
-func parseSPDXJSONObject(dec *json.Decoder, isRoot bool, skipped *int) ([]Package, error) {
+func parseSPDXJSONObject(dec *json.Decoder, isRoot bool, tr *trace) ([]Package, error) {
 	var (
 		sawPackageType    bool
 		sawNonPackageType bool
@@ -100,7 +101,7 @@ func parseSPDXJSONObject(dec *json.Decoder, isRoot bool, skipped *int) ([]Packag
 		if !isRoot {
 			return skipJSONValue(d)
 		}
-		extracted, err := parseSPDXJSONValue(d, false, skipped)
+		extracted, err := parseSPDXJSONValue(d, false, tr)
 		pkgs = append(pkgs, extracted...)
 		return err
 	}
@@ -154,9 +155,33 @@ func parseSPDXJSONObject(dec *json.Decoder, isRoot bool, skipped *int) ([]Packag
 		}
 	}
 	if !isRoot && len(result) == 0 {
-		*skipped++
+		tr.skip("%s", spdxSkipReason(purl, name, version, packageFileName))
 	}
 	return result, nil
+}
+
+func spdxSkipReason(purl, name, version, packageFileName string) string {
+	purl = strings.TrimSpace(purl)
+	if purl != "" {
+		return fmt.Sprintf("Entry %q is not a valid purl", purl)
+	}
+	if name != "" && version != "" && packageFileName != "" {
+		prefix, _, _ := strings.Cut(packageFileName, ":")
+		if prefix != "maven" && prefix != "python" {
+			if prefix == "" {
+				return fmt.Sprintf("Entry %q is an unrecognized ecosystem", name)
+			}
+			return fmt.Sprintf("Entry %q is an unrecognized ecosystem %q", name, prefix)
+		}
+	}
+	label := name
+	if label == "" {
+		label = strings.TrimSpace(packageFileName)
+	}
+	if label == "" {
+		return `Entry "" could not be identified`
+	}
+	return fmt.Sprintf("Entry %q could not be identified", label)
 }
 
 // inferFromSPDX2Fields constructs a Package directly from SPDX 2 name/versionInfo/packageFileName
@@ -246,13 +271,12 @@ func packagesFromSPDXPURLJSON(raw json.RawMessage) []Package {
 }
 
 // parseSPDXTagValue reads SPDX tag-value line-by-line, grouping ExternalRef/PackageURL under the current PackageName.
-func parseSPDXTagValue(r io.Reader) ([]Package, int, error) {
+func parseSPDXTagValue(r io.Reader, tr *trace) ([]Package, error) {
 	scanner := bufio.NewScanner(r)
 	scanner.Buffer(make([]byte, 64*1024), 1024*1024)
 
 	var pkgs []Package
 	var current []string
-	var skipped int
 	var currentIsPackage bool
 	var currentName, currentVersion, currentFileName string
 	flush := func() {
@@ -266,7 +290,7 @@ func parseSPDXTagValue(r io.Reader) ([]Package, int, error) {
 			}
 		}
 		if currentIsPackage && len(pkgs) == before {
-			skipped++
+			tr.skip("%s", spdxTagSkipReason(current, currentName, currentVersion, currentFileName))
 		}
 		current = current[:0]
 		currentIsPackage = false
@@ -305,9 +329,18 @@ func parseSPDXTagValue(r io.Reader) ([]Package, int, error) {
 	}
 	flush()
 	if err := scanner.Err(); err != nil {
-		return nil, 0, wrapParse("SPDX tag-value", err)
+		return nil, wrapParse("SPDX tag-value", err)
 	}
-	return pkgs, skipped, nil
+	return pkgs, nil
+}
+
+func spdxTagSkipReason(purls []string, name, version, packageFileName string) string {
+	for _, purl := range purls {
+		if strings.TrimSpace(purl) != "" {
+			return spdxSkipReason(purl, name, version, packageFileName)
+		}
+	}
+	return spdxSkipReason("", name, version, packageFileName)
 }
 
 // compactSPDXKey maps SPDX 3 aliases (@type, software_packageUrl, RDF URIs) onto a short field name.

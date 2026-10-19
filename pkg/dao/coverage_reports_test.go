@@ -520,6 +520,21 @@ func (s *CoverageReportDaoSuite) TestSaveCoverageAnalysisNotFound() {
 	assert.True(s.T(), daoErr.NotFound)
 }
 
+func TestCoverageReportParseLogAvailable(t *testing.T) {
+	hidden := (coverageReportDaoImpl{}).modelToResponse(models.CoverageReport{})
+	payload, err := json.Marshal(hidden)
+	require.NoError(t, err)
+	assert.NotContains(t, string(payload), "parse_log")
+
+	shown := (coverageReportDaoImpl{}).modelToResponse(models.CoverageReport{
+		ParseLog: utils.Ptr("WARNING: Entry \"foo-bar\" is not a valid purl"),
+	})
+	payload, err = json.Marshal(shown)
+	require.NoError(t, err)
+	assert.Contains(t, string(payload), `"parse_log_available":true`)
+	assert.NotContains(t, string(payload), "foo-bar")
+}
+
 func TestCoverageReportSkippedEntriesResponse(t *testing.T) {
 	for _, count := range []*int{nil, utils.Ptr(0), utils.Ptr(9)} {
 		response := (coverageReportDaoImpl{}).modelToResponse(models.CoverageReport{SkippedEntries: count})

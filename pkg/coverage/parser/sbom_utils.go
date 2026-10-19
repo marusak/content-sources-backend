@@ -52,28 +52,70 @@ func peekSBOMStart(r *bufio.Reader) (byte, error) {
 }
 
 // sniffFormat peeks at the start of the file without consuming it to identify its format.
-func sniffFormat(r *bufio.Reader) (string, error) {
+func sniffFormat(r *bufio.Reader, log *Log) (string, error) {
+	if log == nil {
+		log = &Log{}
+	}
 	peek, err := r.Peek(8192)
 	if err != nil && err != io.EOF && len(peek) == 0 {
+		log.Printf("Could not read the start of the file: %s", err)
 		return "", err
 	}
 	s := strings.TrimSpace(string(peek))
 	lower := strings.ToLower(s)
+	if s == "" {
+		log.Printf("File is empty")
+		return "", nil
+	}
+
+	switch s[0] {
+	case '{', '[':
+		log.Printf("Content looks like JSON")
+	case '<':
+		log.Printf("Content looks like XML")
+	default:
+		log.Printf("Content does not start with JSON or XML")
+	}
 
 	switch {
-	case strings.Contains(lower, `"bomformat"`) ||
-		strings.Contains(lower, "cyclonedx.org") ||
-		strings.Contains(lower, "<bom"):
+	case strings.Contains(lower, `"bomformat"`):
+		log.Printf("Found CycloneDX marker bomFormat")
 		return FormatCycloneDX, nil
-	case strings.Contains(s, "spdxVersion") ||
-		strings.Contains(s, "SPDXVersion") ||
-		strings.Contains(lower, "spdx.org") ||
-		strings.Contains(lower, "spdxid") ||
-		strings.Contains(lower, `"@graph"`):
+	case strings.Contains(lower, "cyclonedx.org"):
+		log.Printf("Found CycloneDX marker cyclonedx.org")
+		return FormatCycloneDX, nil
+	case strings.Contains(lower, "<bom"):
+		log.Printf("Found CycloneDX marker <bom")
+		return FormatCycloneDX, nil
+	default:
+		log.Printf("No CycloneDX markers (bomFormat, cyclonedx.org, <bom)")
+	}
+
+	switch {
+	case strings.Contains(s, "spdxVersion"):
+		log.Printf("Found SPDX marker spdxVersion")
 		return FormatSPDX, nil
-	case isPOM(s):
+	case strings.Contains(s, "SPDXVersion"):
+		log.Printf("Found SPDX marker SPDXVersion")
+		return FormatSPDX, nil
+	case strings.Contains(lower, "spdx.org"):
+		log.Printf("Found SPDX marker spdx.org")
+		return FormatSPDX, nil
+	case strings.Contains(lower, "spdxid"):
+		log.Printf("Found SPDX marker spdxid")
+		return FormatSPDX, nil
+	case strings.Contains(lower, `"@graph"`):
+		log.Printf("Found SPDX marker @graph")
+		return FormatSPDX, nil
+	default:
+		log.Printf("No SPDX markers (spdxVersion, SPDXVersion, spdx.org, spdxid, @graph)")
+	}
+
+	if isPOM(s) {
+		log.Printf("Content matches a Maven POM")
 		return FormatPOM, nil
 	}
+	log.Printf("Content does not match a Maven POM")
 	return "", nil
 }
 

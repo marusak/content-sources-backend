@@ -127,16 +127,20 @@ func requireXMLEnd(dec *xml.Decoder) error {
 }
 
 // parsePOMs parses every project in a POM document and keeps results from successful projects.
-func parsePOMs(r io.Reader, skipped *int) ([]Package, error) {
+func parsePOMs(r io.Reader, tr *trace) ([]Package, error) {
 	projects, err := splitPOMs(r)
 	if err != nil {
 		return nil, err
 	}
 
+	if len(projects) > 1 {
+		tr.note("Found %d Maven projects", len(projects))
+	}
+
 	var packages []Package
 	parseErrors := make([]error, 0, len(projects))
 	for i, project := range projects {
-		parsed, err := parsePOM(bytes.NewReader(project), skipped)
+		parsed, err := parsePOM(bytes.NewReader(project), tr)
 		if err != nil {
 			parseErrors = append(parseErrors, fmt.Errorf("project %d: %w", i+1, err))
 			continue
@@ -146,11 +150,14 @@ func parsePOMs(r io.Reader, skipped *int) ([]Package, error) {
 	if len(parseErrors) == len(projects) {
 		return nil, errors.Join(parseErrors...)
 	}
+	for _, err := range parseErrors {
+		tr.log.Warningf("Project could not be parsed: %s", err.Error())
+	}
 	return packages, nil
 }
 
 // parsePOM uses git-pkgs/pom to parse the file, then resolve parents and BOM imports.
-func parsePOM(r io.Reader, skipped *int) ([]Package, error) {
+func parsePOM(r io.Reader, tr *trace) ([]Package, error) {
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return nil, wrapParse("POM", err)
@@ -168,12 +175,12 @@ func parsePOM(r io.Reader, skipped *int) ([]Package, error) {
 	if err != nil {
 		return nil, wrapParse("POM", err)
 	}
-	return packagesFromEffective(parsed, ep, skipped), nil
+	return packagesFromEffective(parsed, ep, tr), nil
 }
 
-func packagesFromEffective(parsed *gitpom.POM, ep *gitpom.EffectivePOM, skipped *int) []Package {
+func packagesFromEffective(parsed *gitpom.POM, ep *gitpom.EffectivePOM, tr *trace) []Package {
 	collector := newPOMPackageCollector()
-	collector.skipped = skipped
+	collector.tr = tr
 
 	for _, d := range ep.Dependencies {
 		if strings.EqualFold(d.Scope, "import") {
@@ -204,7 +211,7 @@ func packagesFromEffective(parsed *gitpom.POM, ep *gitpom.EffectivePOM, skipped 
 }
 
 type pomPackageCollector struct {
-	skipped            *int
+	tr                 *trace
 	packages           []Package
 	seenGAVs           map[string]struct{}
 	versionedGAs       map[string]struct{}
@@ -222,8 +229,11 @@ func newPOMPackageCollector() *pomPackageCollector {
 func (c *pomPackageCollector) add(groupID, artifactID, version string) {
 	if groupID == "" || artifactID == "" ||
 		strings.Contains(groupID, "${") || strings.Contains(artifactID, "${") {
-		if c.skipped != nil {
-			*c.skipped++
+		label := strings.Trim(groupID+":"+artifactID, ":")
+		if strings.Contains(groupID, "${") || strings.Contains(artifactID, "${") {
+			c.tr.skip("Entry %q has an unresolved property", label)
+		} else {
+			c.tr.skip("Entry %q is missing a group or artifact", label)
 		}
 		return
 	}

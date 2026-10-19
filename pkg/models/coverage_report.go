@@ -67,6 +67,7 @@ type CoverageReport struct {
 	CveLow                   int                       `json:"cve_low" gorm:"not null;default:0"`
 	CatalogSnapshotAt        *time.Time                `json:"catalog_snapshot_at,omitempty"`
 	AnalysisTaskError        *string                   `json:"analysis_task_error,omitempty"`
+	ParseLog                 *string                   `json:"-" gorm:"type:text"`
 	AnalysisTaskUUID         *string                   `json:"analysis_task_uuid,omitempty"`
 	CompletedAt              *time.Time                `json:"completed_at,omitempty"`
 }
@@ -101,6 +102,7 @@ func (cr *CoverageReport) MapForUpdate() map[string]interface{} {
 	forUpdate["cve_low"] = cr.CveLow
 	forUpdate["catalog_snapshot_at"] = cr.CatalogSnapshotAt
 	forUpdate["completed_at"] = cr.CompletedAt
+	forUpdate["parse_log"] = cr.ParseLog
 	return forUpdate
 }
 

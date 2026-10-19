@@ -60,6 +60,7 @@ func RegisterCoverageReportRoutes(engine *echo.Group, daoReg *dao.DaoRegistry, t
 	addRepoRoute(engine, http.MethodPost, "/coverage_reports/", ch.createCoverageReport, rbac.RbacVerbRead, lensAccessMiddleware)
 	addRepoRoute(engine, http.MethodGet, "/coverage_reports/:uuid", ch.getCoverageReport, rbac.RbacVerbRead, lensAccessMiddleware)
 	addRepoRoute(engine, http.MethodGet, "/coverage_reports/:uuid/packages", ch.listCoverageReportPackages, rbac.RbacVerbRead, lensAccessMiddleware)
+	addRepoRoute(engine, http.MethodGet, "/coverage_reports/:uuid/parse_log", ch.getCoverageReportParseLog, rbac.RbacVerbRead, lensAccessMiddleware)
 }
 
 // CreateCoverageReport godoc
@@ -215,6 +216,29 @@ func (ch *CoverageReportHandler) listCoverageReportPackages(c echo.Context) erro
 	}
 
 	return c.JSON(http.StatusOK, SetCollectionResponseMetadata(&response, c, totalCount))
+}
+
+// GetCoverageReportParseLog godoc
+// @Summary      Download coverage report parser log
+// @ID           getCoverageReportParseLog
+// @Description  Return the parser log for a coverage report, listing why manifest entries were ignored.
+// @Tags         coverage_reports
+// @Produce      text/plain
+// @Param        uuid path string true "Coverage report UUID"
+// @Success      200 {string} string
+// @Failure      404 {object} ce.ErrorResponse
+// @Failure      500 {object} ce.ErrorResponse
+// @Router       /coverage_reports/{uuid}/parse_log [get]
+func (ch *CoverageReportHandler) getCoverageReportParseLog(c echo.Context) error {
+	_, orgID := GetAccountIdOrgId(c)
+
+	parseLog, err := ch.DaoRegistry.CoverageReport.FetchParseLog(c.Request().Context(), orgID, c.Param("uuid"))
+	if err != nil {
+		return ce.NewErrorResponse(ce.HttpCodeForDaoError(err), "Error fetching parser log", err.Error())
+	}
+
+	c.Response().Header().Set("Content-Disposition", `attachment; filename="parser-log.txt"`)
+	return c.Blob(http.StatusOK, "text/plain; charset=utf-8", []byte(parseLog))
 }
 
 func (ch *CoverageReportHandler) enqueueCoverageAnalysisEvent(c echo.Context, report api.CoverageReportResponse, uploadUUID string, filename string) uuid.UUID {

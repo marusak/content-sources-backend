@@ -11521,6 +11521,32 @@ func (_c *MockCoverageReportDao_Fetch_Call) RunAndReturn(run func(ctx context.Co
 	return _c
 }
 
+func (_mock *MockCoverageReportDao) FetchParseLog(ctx context.Context, orgID string, reportUUID string) (string, error) {
+	ret := _mock.Called(ctx, orgID, reportUUID)
+	if len(ret) == 0 {
+		panic("no return value specified for FetchParseLog")
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) (string, error)); ok {
+		return returnFunc(ctx, orgID, reportUUID)
+	}
+	var logText string
+	if ret.Get(0) != nil {
+		logText = ret.Get(0).(string)
+	}
+	return logText, ret.Error(1)
+}
+
+func (_mock *MockCoverageReportDao) SetParseLog(ctx context.Context, reportUUID string, parseLog string) error {
+	ret := _mock.Called(ctx, reportUUID, parseLog)
+	if len(ret) == 0 {
+		panic("no return value specified for SetParseLog")
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		return returnFunc(ctx, reportUUID, parseLog)
+	}
+	return ret.Error(0)
+}
+
 // InternalOnlyFetchCoverageUpload provides a mock function for the type MockCoverageReportDao
 func (_mock *MockCoverageReportDao) InternalOnlyFetchCoverageUpload(ctx context.Context, uploadUUID string) (models.CoverageUpload, error) {
 	ret := _mock.Called(ctx, uploadUUID)

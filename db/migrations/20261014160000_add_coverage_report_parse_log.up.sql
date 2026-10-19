@@ -1,0 +1,5 @@
+BEGIN;
+
+ALTER TABLE coverage_reports ADD COLUMN IF NOT EXISTS parse_log TEXT;
+
+COMMIT;

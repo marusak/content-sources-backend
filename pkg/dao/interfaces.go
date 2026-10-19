@@ -338,4 +338,6 @@ type CoverageReportDao interface {
 	SetAnalysisTaskUUID(ctx context.Context, reportUUID string, taskUUID string) error
 	UpdateCoverageReportStatus(ctx context.Context, reportUUID string, status string, errMsg *string) error
 	SaveCoverageAnalysis(ctx context.Context, reportUUID string, params SaveCoverageAnalysisParams) error
+	SetParseLog(ctx context.Context, reportUUID string, parseLog string) error
+	FetchParseLog(ctx context.Context, orgID string, reportUUID string) (string, error)
 }

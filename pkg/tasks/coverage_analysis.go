@@ -129,19 +129,11 @@ func (c *CoverageAnalysis) Run() error {
 	}
 
 	if parseErr != nil {
-		return fmt.Errorf("failed to parse manifest: %w", parseErr)
+		return c.withParserLog(parseErr)
 	}
 
 	if len(parsedPackages.Packages) == 0 {
-		if parsedPackages.SkippedEntries > 0 {
-			//nolint:staticcheck // ST1005: user-facing message persisted verbatim to AnalysisTaskError and rendered in the UI; never wrapped further
-			return fmt.Errorf(
-				"None of the %d package entries in the uploaded %s manifest could be identified using a Package URL (PURL) or supported package metadata.\n"+
-					"Coverage analysis requires identifiable packages — consider regenerating the SBOM with a PURL-aware tool such as Syft.",
-				parsedPackages.SkippedEntries, parsedPackages.InputFormat,
-			)
-		}
-		return fmt.Errorf("no packages found in manifest")
+		return c.withParserLog(emptyManifestError(parsedPackages))
 	}
 
 	err = c.daoReg.CoverageReport.UpdateCoverageReportStatus(c.ctx, c.payload.CoverageReportUUID, config.TaskStatusRunning, nil)
@@ -172,6 +164,7 @@ func (c *CoverageAnalysis) Run() error {
 	err = c.daoReg.CoverageReport.SaveCoverageAnalysis(c.ctx, c.payload.CoverageReportUUID, dao.SaveCoverageAnalysisParams{
 		InputFormat:    parsedPackages.InputFormat,
 		SkippedEntries: parsedPackages.SkippedEntries,
+		ParseLog:       parserLogForDownload(parsedPackages),
 		Results:        results,
 		PackageCVEs:    packageCVEs,
 		CveSummary:     cveSummary,
@@ -221,6 +214,54 @@ func ecosystemForContentType(contentType string) string {
 	default:
 		return ""
 	}
+}
+
+// withParserLog stores the full parser trace when the shown failure reason
+// had to leave out ignored entries, then returns err unchanged.
+func (c *CoverageAnalysis) withParserLog(err error) error {
+	var reason *parser.ReasonError
+	if errors.As(err, &reason) {
+		if text := reason.Download(); text != "" {
+			if setErr := c.daoReg.CoverageReport.SetParseLog(c.ctx, c.payload.CoverageReportUUID, text); setErr != nil {
+				log.Ctx(c.ctx).Error().Err(setErr).Msg("failed to store parser log")
+			}
+		}
+	}
+	return err
+}
+
+func emptyManifestError(parsed *parser.ParseResult) error {
+	var msg string
+	if parsed.SkippedEntries > 0 {
+		//nolint:staticcheck // ST1005: user-facing message persisted verbatim to AnalysisTaskError and rendered in the UI; never wrapped further
+		msg = fmt.Sprintf(
+			"None of the %d package entries in the uploaded %s manifest could be identified using a Package URL (PURL) or supported package metadata.\n"+
+				"Coverage analysis requires identifiable packages — consider regenerating the SBOM with a PURL-aware tool such as Syft.",
+			parsed.SkippedEntries, parsed.InputFormat,
+		)
+	} else {
+		msg = "no packages found in manifest"
+	}
+	return &parser.ReasonError{
+		Reason:    appendLogLine(parsed.Reason, msg),
+		Full:      appendLogLine(parsed.Log, msg),
+		Truncated: parsed.Warnings > parser.FailureWarningLimit,
+		Err:       errors.New(msg),
+	}
+}
+
+func parserLogForDownload(parsed *parser.ParseResult) string {
+	if parsed == nil || parsed.Warnings == 0 {
+		return ""
+	}
+	return parsed.Log
+}
+
+func appendLogLine(logText, line string) string {
+	if logText == "" {
+		return line
+	}
+	return logText + "\n" + line
 }
 
 func toMatcherPackages(pkgs []parser.Package) []matcher.Package {

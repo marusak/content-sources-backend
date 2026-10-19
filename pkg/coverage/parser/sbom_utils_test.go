@@ -42,7 +42,7 @@ func TestSniffFormat(t *testing.T) {
 			require.NoError(t, err)
 			defer f.Close()
 
-			got, err := sniffFormat(bufio.NewReader(f))
+			got, err := sniffFormat(bufio.NewReader(f), nil)
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, got)
 		})
@@ -90,7 +90,7 @@ func TestSniffFormat_POM(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			format, err := sniffFormat(bufio.NewReader(strings.NewReader(tt.data)))
+			format, err := sniffFormat(bufio.NewReader(strings.NewReader(tt.data)), nil)
 			require.NoError(t, err)
 			assert.Equal(t, tt.want, format)
 		})
@@ -101,7 +101,7 @@ func TestSniffFormat_DoesNotConsumeInput(t *testing.T) {
 	data := `<project><modelVersion>4.0.0</modelVersion></project>`
 	r := bufio.NewReader(strings.NewReader(data))
 
-	_, err := sniffFormat(r)
+	_, err := sniffFormat(r, nil)
 	require.NoError(t, err)
 
 	remaining, err := io.ReadAll(r)

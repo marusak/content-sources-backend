@@ -35,6 +35,7 @@ type coverageReportDaoImpl struct {
 type SaveCoverageAnalysisParams struct {
 	SkippedEntries int
 	InputFormat    string
+	ParseLog       string
 	Results        []matcher.MatchResult
 	PackageCVEs    []cve.PackageCVE // aligned 1:1 with Results; empty when CVE data is unavailable
 	CveSummary     cve.Count
@@ -150,6 +151,32 @@ func (d coverageReportDaoImpl) SetAnalysisTaskUUID(ctx context.Context, reportUU
 	return nil
 }
 
+func (d coverageReportDaoImpl) SetParseLog(ctx context.Context, reportUUID string, parseLog string) error {
+	if parseLog == "" {
+		return nil
+	}
+	result := d.db.WithContext(ctx).Model(&models.CoverageReport{}).Where("uuid = ?", reportUUID).Update("parse_log", parseLog)
+	if result.Error != nil {
+		return d.toApiError(result.Error)
+	}
+	if result.RowsAffected == 0 {
+		return d.toApiError(gorm.ErrRecordNotFound)
+	}
+	return nil
+}
+
+func (d coverageReportDaoImpl) FetchParseLog(ctx context.Context, orgID string, reportUUID string) (string, error) {
+	var report models.CoverageReport
+	result := d.db.WithContext(ctx).Select("parse_log").Where("uuid = ? AND org_id = ?", reportUUID, orgID).First(&report)
+	if result.Error != nil {
+		return "", d.toApiError(result.Error)
+	}
+	if report.ParseLog == nil || *report.ParseLog == "" {
+		return "", &ce.DaoError{NotFound: true, Message: "Parser log not found"}
+	}
+	return *report.ParseLog, nil
+}
+
 func (d coverageReportDaoImpl) UpdateCoverageReportStatus(ctx context.Context, reportUUID string, status string, errMsg *string) error {
 	updates := map[string]interface{}{
 		"status": status,
@@ -231,6 +258,9 @@ func (d coverageReportDaoImpl) SaveCoverageAnalysis(ctx context.Context, reportU
 		report.Status = config.TaskStatusCompleted
 		report.InputFormat = utils.Ptr(params.InputFormat)
 		report.SkippedEntries = utils.Ptr(params.SkippedEntries)
+		if params.ParseLog != "" {
+			report.ParseLog = utils.Ptr(params.ParseLog)
+		}
 		report.Total = utils.Ptr(params.Summary.Total)
 		report.ExactMatches = utils.Ptr(params.Summary.ExactMatches)
 		report.PartialMatches = utils.Ptr(params.Summary.PartialMatches)
@@ -305,6 +335,9 @@ func (d coverageReportDaoImpl) modelToResponse(r models.CoverageReport) api.Cove
 	}
 	if r.AnalysisTaskError != nil {
 		resp.AnalysisTaskError = *r.AnalysisTaskError
+	}
+	if r.ParseLog != nil && *r.ParseLog != "" {
+		resp.ParseLogAvailable = true
 	}
 	if r.AnalysisTaskUUID != nil {
 		resp.AnalysisTaskUUID = *r.AnalysisTaskUUID

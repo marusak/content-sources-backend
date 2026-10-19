@@ -8,10 +8,11 @@ import (
 )
 
 // parseRequirements streams a pip requirements file; only ==/=== specifiers produce a pinned version.
-func parseRequirements(r io.Reader, skipped *int) ([]Package, error) {
+func parseRequirements(r io.Reader, tr *trace) ([]Package, error) {
 	var packages []Package
 	var continuation strings.Builder
 	scanner := bufio.NewScanner(r)
+	lines := 0
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -36,10 +37,12 @@ func parseRequirements(r io.Reader, skipped *int) ([]Package, error) {
 		if line == "" || strings.HasPrefix(line, "-") {
 			// Editable requirements represent package entries, unlike configuration flags.
 			if strings.HasPrefix(line, "-e ") || strings.HasPrefix(line, "--editable ") || strings.HasPrefix(line, "--editable=") {
-				*skipped++
+				lines++
+				tr.skip("Entry %q is an editable requirement", line)
 			}
 			continue
 		}
+		lines++
 
 		// Strip per-requirement options (e.g. --hash after continuation)
 		if before, _, found := strings.Cut(line, " --"); found {
@@ -77,7 +80,7 @@ func parseRequirements(r io.Reader, skipped *int) ([]Package, error) {
 		pkgName = strings.TrimSpace(pkgName)
 
 		if pkgName == "" {
-			*skipped++
+			tr.skip("Entry %q has no package name", line)
 			continue
 		}
 
@@ -94,5 +97,6 @@ func parseRequirements(r io.Reader, skipped *int) ([]Package, error) {
 	if continuation.Len() > 0 {
 		return nil, fmt.Errorf("unexpected end of file during line continuation")
 	}
+	tr.note("%d lines found", lines)
 	return packages, nil
 }
