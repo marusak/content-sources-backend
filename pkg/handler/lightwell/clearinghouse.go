@@ -9,6 +9,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"path"
+	"slices"
 	"sort"
 	"strings"
 
@@ -369,7 +370,7 @@ func (h *ClearinghouseHandler) submitSubmission(c echo.Context) error {
 // processSubmission godoc
 // @Summary      Process a clearinghouse submission
 // @ID           processClearinghouseSubmission
-// @Description  Mark a submitted clearinghouse submission as processed. Records the time and the username of the caller. Requires the Lightwell clearinghouse read feature.
+// @Description  Mark a submitted clearinghouse submission as processed. Records the time and the username of the caller. Requires the Lightwell clearinghouse read feature, and the caller must be listed on the submission's CID.
 // @Tags         lightwell
 // @Produce      json
 // @Param        uuid path string true "Clearinghouse submission UUID"
@@ -394,6 +395,9 @@ func (h *ClearinghouseHandler) processSubmission(c echo.Context) error {
 	username, err := clearinghouseUsername(c)
 	if err != nil {
 		return err
+	}
+	if !config.Get().Clients.Lightwell.ClearinghouseMapping.Allows(username, upload.OrgID) {
+		return ce.NewErrorResponse(http.StatusNotFound, "Error processing clearinghouse submission", "Submission not found")
 	}
 	if upload.Status != api.ClearinghouseSubmissionStatusSubmitted {
 		return ce.NewErrorResponse(http.StatusConflict, "Cannot process clearinghouse submission", clearinghouseProcessConflict(upload.Status))
@@ -425,7 +429,7 @@ func clearinghouseProcessConflict(status string) string {
 // listSubmissions godoc
 // @Summary      List clearinghouse submissions
 // @ID           listClearinghouseSubmissions
-// @Description  Customers with Lightwell clearinghouse see every submission in their org, including submissions that are still pending. Callers with Lightwell clearinghouse read see every submission. File contents are not included.
+// @Description  Customers with Lightwell clearinghouse see every submission in their org, including submissions that are still pending. Callers with Lightwell clearinghouse read see submissions for CIDs that list their username. File contents are not included.
 // @Tags         lightwell
 // @Produce      json
 // @Param        limit  query int false "Number of items to include in response. Default value: 100."
@@ -435,20 +439,17 @@ func clearinghouseProcessConflict(status string) string {
 // @Failure      500 {object} ce.ErrorResponse
 // @Router       /clearinghouse/submissions [get]
 func (h *ClearinghouseHandler) listSubmissions(c echo.Context) error {
-	orgFilter, err := clearinghouseOrgFilter(c)
+	visibility, err := clearinghouseVisibilityFor(c)
 	if err != nil {
 		return err
 	}
 	page := clearinghousePage(c)
-	uploads, err := h.Uploads.List(c.Request().Context(), dao.ListClearinghouseUploadsParams{
-		OrgID:  orgFilter,
-		Limit:  page.limit,
-		Offset: page.offset,
-	})
+	params := visibility.listParams(page)
+	uploads, err := h.Uploads.List(c.Request().Context(), params)
 	if err != nil {
 		return clearinghouseStoreError(err, "Error listing clearinghouse submissions")
 	}
-	total, err := h.Uploads.Count(c.Request().Context(), orgFilter)
+	total, err := h.Uploads.Count(c.Request().Context(), params)
 	if err != nil {
 		return clearinghouseStoreError(err, "Error listing clearinghouse submissions")
 	}
@@ -478,7 +479,7 @@ func (h *ClearinghouseHandler) listSubmissions(c echo.Context) error {
 // getSubmission godoc
 // @Summary      Get a clearinghouse submission
 // @ID           getClearinghouseSubmission
-// @Description  Customers with Lightwell clearinghouse can fetch their own submission. Callers with Lightwell clearinghouse read can fetch any submission. File contents are not included.
+// @Description  Customers with Lightwell clearinghouse can fetch their own submission. Callers with Lightwell clearinghouse read can fetch a submission when their username is listed on its CID. File contents are not included.
 // @Tags         lightwell
 // @Produce      json
 // @Param        uuid path string true "Clearinghouse submission UUID"
@@ -502,7 +503,7 @@ func (h *ClearinghouseHandler) getSubmission(c echo.Context) error {
 // downloadSubmission godoc
 // @Summary      Download a clearinghouse submission
 // @ID           downloadClearinghouseSubmission
-// @Description  Download the file that was uploaded when the clearinghouse submission was created. The author can download it while it is pending or submitted. Callers with the Lightwell clearinghouse read feature can download it once it is submitted.
+// @Description  Download the file that was uploaded when the clearinghouse submission was created. The author can download it while it is pending or submitted. Callers with the Lightwell clearinghouse read feature can download it once it is submitted, when their username is listed on its CID.
 // @Tags         lightwell
 // @Produce      application/octet-stream
 // @Param        uuid path string true "Clearinghouse submission UUID"
@@ -527,7 +528,7 @@ func (h *ClearinghouseHandler) downloadSubmission(c echo.Context) error {
 // downloadSubmissionArchive godoc
 // @Summary      Download a clearinghouse submission archive
 // @ID           downloadClearinghouseSubmissionArchive
-// @Description  Download the submission file and every other file in the submission as a zip archive. The author can download it while it is pending or submitted. Callers with the Lightwell clearinghouse read feature can download it once it is submitted.
+// @Description  Download the submission file and every other file in the submission as a zip archive. The author can download it while it is pending or submitted. Callers with the Lightwell clearinghouse read feature can download it once it is submitted, when their username is listed on its CID.
 // @Tags         lightwell
 // @Produce      application/zip
 // @Param        uuid path string true "Clearinghouse submission UUID"
@@ -615,7 +616,7 @@ func clearinghouseArchiveFiles(files []dao.ClearinghouseUploadFile, submissionFi
 // downloadSubmissionFile godoc
 // @Summary      Download a clearinghouse submission file
 // @ID           downloadClearinghouseSubmissionFile
-// @Description  Download a file stored with a clearinghouse submission. The author can download it while it is pending or submitted. Callers with the Lightwell clearinghouse read feature can download it once it is submitted.
+// @Description  Download a file stored with a clearinghouse submission. The author can download it while it is pending or submitted. Callers with the Lightwell clearinghouse read feature can download it once it is submitted, when their username is listed on its CID.
 // @Tags         lightwell
 // @Produce      application/octet-stream
 // @Param        uuid     path string true "Clearinghouse submission UUID"
@@ -677,7 +678,7 @@ func authorizeClearinghouseDownload(c echo.Context, upload dao.ClearinghouseUplo
 	}
 	_, orgID := handler.GetAccountIdOrgId(c)
 	isAuthor := authorErr == nil && upload.Username == username && upload.OrgID == orgID
-	hasRead := readErr == nil
+	hasRead := readErr == nil && config.Get().Clients.Lightwell.ClearinghouseMapping.Allows(username, upload.OrgID)
 	allowed := false
 	switch upload.Status {
 	case api.ClearinghouseSubmissionStatusPending:
@@ -896,7 +897,7 @@ func openClearinghouseFile(file preparedClearinghouseFile) (multipart.File, int6
 }
 
 func (h *ClearinghouseHandler) visibleUpload(c echo.Context) (dao.ClearinghouseUpload, error) {
-	orgFilter, err := clearinghouseOrgFilter(c)
+	visibility, err := clearinghouseVisibilityFor(c)
 	if err != nil {
 		return dao.ClearinghouseUpload{}, err
 	}
@@ -908,23 +909,57 @@ func (h *ClearinghouseHandler) visibleUpload(c echo.Context) (dao.ClearinghouseU
 	if err != nil {
 		return dao.ClearinghouseUpload{}, clearinghouseStoreError(err, "Error fetching clearinghouse submission")
 	}
-	if orgFilter != nil && upload.OrgID != *orgFilter {
+	if !visibility.allows(upload.OrgID) {
 		return dao.ClearinghouseUpload{}, ce.NewErrorResponse(http.StatusNotFound, "Error fetching clearinghouse submission", "Submission not found")
 	}
 	return upload, nil
 }
 
-func clearinghouseOrgFilter(c echo.Context) (*string, error) {
+type clearinghouseVisibility struct {
+	orgID          *string
+	orgIDs         []string
+	restrictOrgIDs bool
+}
+
+func clearinghouseVisibilityFor(c echo.Context) (clearinghouseVisibility, error) {
 	ctx := c.Request().Context()
 	if config.FeatureAccessible(ctx, config.Get().Features.LightwellClearinghouseRead) {
-		return nil, nil
+		username, err := clearinghouseUsername(c)
+		if err != nil {
+			return clearinghouseVisibility{}, err
+		}
+		return clearinghouseVisibility{
+			orgIDs:         config.Get().Clients.Lightwell.ClearinghouseMapping.OrgIDsForUser(username),
+			restrictOrgIDs: true,
+		}, nil
 	}
 	if !config.FeatureAccessible(ctx, config.Get().Features.LightwellClearinghouse) {
-		return nil, ce.NewErrorResponse(http.StatusBadRequest, "Cannot access clearinghouse submissions",
+		return clearinghouseVisibility{}, ce.NewErrorResponse(http.StatusBadRequest, "Cannot access clearinghouse submissions",
 			"Neither the user nor account is allowed.")
 	}
 	_, orgID := handler.GetAccountIdOrgId(c)
-	return &orgID, nil
+	return clearinghouseVisibility{orgID: &orgID}, nil
+}
+
+func (v clearinghouseVisibility) allows(orgID string) bool {
+	if v.restrictOrgIDs {
+		return slices.Contains(v.orgIDs, orgID)
+	}
+	return v.orgID != nil && *v.orgID == orgID
+}
+
+func (v clearinghouseVisibility) listParams(page clearinghousePageParams) dao.ListClearinghouseUploadsParams {
+	orgIDs := v.orgIDs
+	if v.restrictOrgIDs && orgIDs == nil {
+		orgIDs = []string{}
+	}
+	return dao.ListClearinghouseUploadsParams{
+		OrgID:          v.orgID,
+		OrgIDs:         orgIDs,
+		RestrictOrgIDs: v.restrictOrgIDs,
+		Limit:          page.limit,
+		Offset:         page.offset,
+	}
 }
 
 type clearinghousePageParams struct {

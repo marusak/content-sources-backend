@@ -1212,7 +1212,7 @@
         },
         "/clearinghouse/submissions": {
             "get": {
-                "description": "Customers with Lightwell clearinghouse see every submission in their org, including submissions that are still pending. Callers with Lightwell clearinghouse read see every submission. File contents are not included.",
+                "description": "Customers with Lightwell clearinghouse see every submission in their org, including submissions that are still pending. Callers with Lightwell clearinghouse read see submissions for CIDs that list their username. File contents are not included.",
                 "operationId": "listClearinghouseSubmissions",
                 "parameters": [
                     {
@@ -1420,7 +1420,7 @@
                 ]
             },
             "get": {
-                "description": "Customers with Lightwell clearinghouse can fetch their own submission. Callers with Lightwell clearinghouse read can fetch any submission. File contents are not included.",
+                "description": "Customers with Lightwell clearinghouse can fetch their own submission. Callers with Lightwell clearinghouse read can fetch a submission when their username is listed on its CID. File contents are not included.",
                 "operationId": "getClearinghouseSubmission",
                 "parameters": [
                     {
@@ -1483,7 +1483,7 @@
         },
         "/clearinghouse/submissions/{uuid}/archive": {
             "get": {
-                "description": "Download the submission file and every other file in the submission as a zip archive. The author can download it while it is pending or submitted. Callers with the Lightwell clearinghouse read feature can download it once it is submitted.",
+                "description": "Download the submission file and every other file in the submission as a zip archive. The author can download it while it is pending or submitted. Callers with the Lightwell clearinghouse read feature can download it once it is submitted, when their username is listed on its CID.",
                 "operationId": "downloadClearinghouseSubmissionArchive",
                 "parameters": [
                     {
@@ -1743,7 +1743,7 @@
                 ]
             },
             "get": {
-                "description": "Download a file stored with a clearinghouse submission. The author can download it while it is pending or submitted. Callers with the Lightwell clearinghouse read feature can download it once it is submitted.",
+                "description": "Download a file stored with a clearinghouse submission. The author can download it while it is pending or submitted. Callers with the Lightwell clearinghouse read feature can download it once it is submitted, when their username is listed on its CID.",
                 "operationId": "downloadClearinghouseSubmissionFile",
                 "parameters": [
                     {
@@ -1826,7 +1826,7 @@
         },
         "/clearinghouse/submissions/{uuid}/process": {
             "post": {
-                "description": "Mark a submitted clearinghouse submission as processed. Records the time and the username of the caller. Requires the Lightwell clearinghouse read feature.",
+                "description": "Mark a submitted clearinghouse submission as processed. Records the time and the username of the caller. Requires the Lightwell clearinghouse read feature, and the caller must be listed on the submission's CID.",
                 "operationId": "processClearinghouseSubmission",
                 "parameters": [
                     {
@@ -1899,7 +1899,7 @@
         },
         "/clearinghouse/submissions/{uuid}/submission": {
             "get": {
-                "description": "Download the file that was uploaded when the clearinghouse submission was created. The author can download it while it is pending or submitted. Callers with the Lightwell clearinghouse read feature can download it once it is submitted.",
+                "description": "Download the file that was uploaded when the clearinghouse submission was created. The author can download it while it is pending or submitted. Callers with the Lightwell clearinghouse read feature can download it once it is submitted, when their username is listed on its CID.",
                 "operationId": "downloadClearinghouseSubmission",
                 "parameters": [
                     {
