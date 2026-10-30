@@ -30,6 +30,7 @@ type ClearinghouseSuite struct {
 	LightwellSuite
 	clearinghouseFeature config.Feature
 	readFeature          config.Feature
+	savedMapping         config.ClearinghouseMapping
 }
 
 func TestClearinghouseSuite(t *testing.T) {
@@ -40,13 +41,18 @@ func (s *ClearinghouseSuite) SetupTest() {
 	s.LightwellSuite.SetupTest()
 	s.clearinghouseFeature = config.Get().Features.LightwellClearinghouse
 	s.readFeature = config.Get().Features.LightwellClearinghouseRead
+	s.savedMapping = config.Get().Clients.Lightwell.ClearinghouseMapping
 	config.Get().Features.LightwellClearinghouse = config.Feature{}
 	config.Get().Features.LightwellClearinghouseRead = config.Feature{}
+	config.Get().Clients.Lightwell.ClearinghouseMapping = config.ParseClearinghouseMappings(
+		`{"CidOrgId":{"CID-00000":"` + test_handler.MockOrgId + `"},"CidTam":{"CID-00000":["user"]}}`,
+	)
 }
 
 func (s *ClearinghouseSuite) TearDownTest() {
 	config.Get().Features.LightwellClearinghouse = s.clearinghouseFeature
 	config.Get().Features.LightwellClearinghouseRead = s.readFeature
+	config.Get().Clients.Lightwell.ClearinghouseMapping = s.savedMapping
 	s.reg.ClearinghouseUpload.AssertExpectations(s.T())
 }
 
@@ -154,6 +160,7 @@ func (s *ClearinghouseSuite) TestCreate() {
 	s.Require().NoError(json.Unmarshal(body, &created))
 	s.Equal(api.ClearinghouseSubmissionStatusPending, created.Status)
 	s.Equal(test_handler.MockOrgId, created.OrgID)
+	s.Equal("CID-00000", created.CID)
 	s.Equal("user", created.Username)
 	s.Equal("My Intake Batch", created.Name)
 	s.Require().NotNil(created.VulnerabilityCount)
@@ -221,6 +228,7 @@ func (s *ClearinghouseSuite) TestAddFiles() {
 	s.Require().NoError(json.Unmarshal(body, &updated))
 	s.Len(updated.Files, 3)
 	s.Equal("user", updated.Username)
+	s.Equal("CID-00000", updated.CID)
 
 	code, body = s.serve(clearinghouseUploadRequestAs(s.T(), http.MethodPost, path, "files", map[string]string{
 		"other.txt": "nope",
@@ -445,6 +453,7 @@ func (s *ClearinghouseSuite) TestListAndGet() {
 	s.Require().NoError(json.Unmarshal(body, &listed))
 	s.Require().Len(listed.Data, 1)
 	s.Equal(id.String(), listed.Data[0].UUID)
+	s.Equal("CID-00000", listed.Data[0].CID)
 	s.Equal("user", listed.Data[0].Username)
 	s.False(listed.Data[0].CreatedAt.IsZero())
 	s.Nil(listed.Data[0].SubmittedAt)
@@ -460,6 +469,7 @@ func (s *ClearinghouseSuite) TestListAndGet() {
 	var fetched api.ClearinghouseSubmission
 	s.Require().NoError(json.Unmarshal(body, &fetched))
 	s.Equal(id.String(), fetched.UUID)
+	s.Equal("CID-00000", fetched.CID)
 	s.Equal(api.ClearinghouseSubmissionStatusPending, fetched.Status)
 	s.False(fetched.CreatedAt.IsZero())
 	s.Require().Len(fetched.Files, 3)
@@ -486,6 +496,7 @@ func (s *ClearinghouseSuite) TestListAndGet() {
 	s.Require().Equal(http.StatusOK, code, string(body))
 	s.Require().NoError(json.Unmarshal(body, &fetched))
 	s.Equal(otherID.String(), fetched.UUID)
+	s.Empty(fetched.CID)
 	s.Equal("someone", fetched.Username)
 	s.Equal(api.ClearinghouseSubmissionStatusSubmitted, fetched.Status)
 }
@@ -519,6 +530,7 @@ func (s *ClearinghouseSuite) TestSubmit() {
 	var fetched api.ClearinghouseSubmission
 	s.Require().NoError(json.Unmarshal(body, &fetched))
 	s.Equal(api.ClearinghouseSubmissionStatusSubmitted, fetched.Status)
+	s.Equal("CID-00000", fetched.CID)
 	s.Require().NotNil(fetched.SubmittedBy)
 	s.Equal("user", *fetched.SubmittedBy)
 	s.Require().NotNil(fetched.SubmittedAt)
@@ -619,6 +631,7 @@ func (s *ClearinghouseSuite) TestDownloadAccess() {
 	var fetched api.ClearinghouseSubmission
 	s.Require().NoError(json.Unmarshal(body, &fetched))
 	s.Equal(api.ClearinghouseSubmissionStatusProcessed, fetched.Status)
+	s.Equal("CID-00000", fetched.CID)
 	s.Require().NotNil(fetched.ProcessedBy)
 	s.Equal("user", *fetched.ProcessedBy)
 	s.Require().NotNil(fetched.ProcessedAt)

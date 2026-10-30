@@ -1006,6 +1006,7 @@ func clearinghouseSubmissionFromStore(upload dao.ClearinghouseUpload, files []da
 	return api.ClearinghouseSubmission{
 		UUID:               upload.UUID.String(),
 		OrgID:              upload.OrgID,
+		CID:                config.Get().Clients.Lightwell.ClearinghouseMapping.CIDForOrg(upload.OrgID),
 		Username:           upload.Username,
 		Name:               upload.Name,
 		CreatedAt:          upload.CreatedAt,

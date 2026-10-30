@@ -1539,6 +1539,10 @@ const docTemplatelightwell = `{
         "api.ClearinghouseSubmission": {
             "type": "object",
             "properties": {
+                "cid": {
+                    "description": "CID is the customer identifier for OrgID, taken from the clearinghouse mapping when the submission is returned. It is not stored.",
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },

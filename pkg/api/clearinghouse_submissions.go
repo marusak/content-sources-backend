@@ -20,8 +20,10 @@ type ClearinghouseSubmissionFile struct {
 
 // ClearinghouseSubmission is one customer clearinghouse upload and the files stored with it.
 type ClearinghouseSubmission struct {
-	UUID               string                        `json:"uuid"`
-	OrgID              string                        `json:"org_id"`
+	UUID  string `json:"uuid"`
+	OrgID string `json:"org_id"`
+	// CID is the customer identifier for OrgID, taken from the clearinghouse mapping when the submission is returned. It is not stored.
+	CID                string                        `json:"cid"`
 	Username           string                        `json:"username"`
 	Name               string                        `json:"name"`
 	CreatedAt          time.Time                     `json:"created_at"`
