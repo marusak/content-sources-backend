@@ -135,6 +135,23 @@ func (m ClearinghouseMapping) CIDForOrg(orgID string) string {
 	return m.cidByOrgID[orgID]
 }
 
+// TAMsForOrg returns the TAM usernames for the CID that owns orgID, in sorted
+// order. The result is empty when the org has no CID or that CID lists no TAMs.
+func (m ClearinghouseMapping) TAMsForOrg(orgID string) []string {
+	cid := m.CIDForOrg(orgID)
+	if cid == "" || len(m.tamsByCID[cid]) == 0 {
+		return []string{}
+	}
+	tams := make([]string, 0, len(m.tamsByCID[cid]))
+	for _, username := range m.tamsByCID[cid] {
+		if username != "" {
+			tams = append(tams, username)
+		}
+	}
+	slices.Sort(tams)
+	return tams
+}
+
 // Allows reports whether username is a TAM for the CID that owns orgID.
 func (m ClearinghouseMapping) Allows(username, orgID string) bool {
 	cid := m.CIDForOrg(orgID)

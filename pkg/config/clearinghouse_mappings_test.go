@@ -32,6 +32,8 @@ func TestParseClearinghouseMappings(t *testing.T) {
 	assert.True(t, mapping.Allows("lightwell-mmarusak", "20655920"))
 	assert.False(t, mapping.Allows("lightwell-mmarusak", "other"))
 	assert.False(t, mapping.Allows("", "20655920"))
+	assert.Equal(t, []string{"lightwell-jsherril", "lightwell-mmarusak"}, mapping.TAMsForOrg("20655920"))
+	assert.Empty(t, mapping.TAMsForOrg("other"))
 }
 
 func TestParseClearinghouseMappingsEmpty(t *testing.T) {
