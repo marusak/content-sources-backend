@@ -67,6 +67,16 @@ type Jira struct {
 	Token string `mapstructure:"token"`
 }
 
+// BOP is the Back Office Proxy, used to resolve usernames to email addresses
+// and to send email.
+type BOP struct {
+	Server   string `mapstructure:"server"`
+	APIToken string `mapstructure:"api_token"`
+	ClientID string `mapstructure:"client_id"`
+	Env      string `mapstructure:"env"`
+	Sender   string `mapstructure:"sender"`
+}
+
 type Clients struct {
 	RbacEnabled    bool           `mapstructure:"rbac_enabled"`
 	RbacBaseUrl    string         `mapstructure:"rbac_base_url"`
@@ -81,6 +91,7 @@ type Clients struct {
 	PulpLogParser  PulpLogParser  `mapstructure:"pulp_log_parser"`
 	Roadmap        Roadmap        `mapstructure:"roadmap"`
 	Jira           Jira           `mapstructure:"jira"`
+	BOP            BOP            `mapstructure:"bop"`
 }
 
 type Mocks struct {
@@ -161,6 +172,9 @@ type Lightwell struct {
 	ClearinghouseMappings string `mapstructure:"clearinghouse_mappings"`
 	// ClearinghouseMapping is parsed from ClearinghouseMappings during Load.
 	ClearinghouseMapping ClearinghouseMapping `mapstructure:"-"`
+	// DefaultTamEmails is a JSON array of addresses notified when a submitted
+	// clearinghouse submission's CID has no TAM. Set with LIGHTWELL_DEFAULT_TAM_EMAILS.
+	DefaultTamEmails string `mapstructure:"default_tam_emails"`
 }
 
 type S3 struct {
@@ -434,6 +448,11 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("clients.jira.url", "")
 	v.SetDefault("clients.jira.user", "")
 	v.SetDefault("clients.jira.token", "")
+	v.SetDefault("clients.bop.server", "")
+	v.SetDefault("clients.bop.api_token", "")
+	v.SetDefault("clients.bop.client_id", "")
+	v.SetDefault("clients.bop.env", "")
+	v.SetDefault("clients.bop.sender", `"Lightwell" noreply@redhat.com`)
 	v.SetDefault("clients.rbac_enabled", true)
 	v.SetDefault("clients.rbac_base_url", "http://rbac-service:8000/api/rbac/v1")
 	v.SetDefault("clients.rbac_timeout", 30)
@@ -548,6 +567,7 @@ func setDefaults(v *viper.Viper) {
 	v.SetDefault("clients.lightwell.s3.clearinghouse_uploads.region", "")
 	v.SetDefault("clients.lightwell.s3.clearinghouse_uploads.file_prefix", "")
 	v.SetDefault("clients.lightwell.clearinghouse_mappings", "")
+	v.SetDefault("clients.lightwell.default_tam_emails", "[]")
 
 	v.SetDefault("tasking.heartbeat", 1*time.Minute)
 	v.SetDefault("tasking.worker_count", 3)
@@ -651,6 +671,10 @@ func Load() {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	v.AutomaticEnv()
 	setDefaults(v)
+	// The documented name does not follow the clients.lightwell.* env prefix.
+	if err = v.BindEnv("clients.lightwell.default_tam_emails", "LIGHTWELL_DEFAULT_TAM_EMAILS", "CLIENTS_LIGHTWELL_DEFAULT_TAM_EMAILS"); err != nil {
+		log.Error().Err(err).Msg("could not bind LIGHTWELL_DEFAULT_TAM_EMAILS")
+	}
 
 	if clowder.IsClowderEnabled() {
 		cfg := clowder.LoadedConfig

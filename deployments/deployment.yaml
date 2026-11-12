@@ -397,6 +397,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -805,6 +815,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -1180,6 +1200,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -1543,6 +1573,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -1909,6 +1949,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -2276,6 +2326,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -2645,6 +2705,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -3012,6 +3082,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -3376,6 +3456,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -3738,6 +3828,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -4102,6 +4202,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -4466,6 +4576,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -4830,6 +4950,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -5217,6 +5347,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -5582,6 +5722,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -5964,6 +6114,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -6325,6 +6485,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -6686,6 +6856,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -7047,6 +7227,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -7408,6 +7598,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -7769,6 +7969,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -8130,6 +8340,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -8491,6 +8711,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -8852,6 +9082,16 @@ objects:
                     name: lightwell-stams-mappings
                     key: mappings
                     optional: true
+              - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+                value: ${{LIGHTWELL_DEFAULT_TAM_EMAILS}}
+              - name: CLIENTS_BOP_SERVER
+                value: ${{CLIENTS_BOP_SERVER}}
+              - name: CLIENTS_BOP_API_TOKEN
+                value: ${{CLIENTS_BOP_API_TOKEN}}
+              - name: CLIENTS_BOP_CLIENT_ID
+                value: ${{CLIENTS_BOP_CLIENT_ID}}
+              - name: CLIENTS_BOP_ENV
+                value: ${{CLIENTS_BOP_ENV}}
               - name: JFROG_BRIDGE_ENABLED
                 value: ${JFROG_BRIDGE_ENABLED}
               - name: JFROG_BRIDGE_CATALOG_TOKEN
@@ -9278,6 +9518,23 @@ parameters:
     value: 'false'
   - name: CLIENTS_LIGHTWELL_USERNAME
     description: Username for accessing lightwell content using basic auth
+    value: ''
+  - name: LIGHTWELL_DEFAULT_TAM_EMAILS
+    description: JSON array of email addresses notified when a clearinghouse submission
+      CID has no TAM
+    value: '[]'
+  - name: CLIENTS_BOP_SERVER
+    description: Back Office Proxy base URL used to resolve TAM emails and send submission
+      notices
+    value: ''
+  - name: CLIENTS_BOP_API_TOKEN
+    description: Back Office Proxy API token (x-rh-apitoken)
+    value: ''
+  - name: CLIENTS_BOP_CLIENT_ID
+    description: Back Office Proxy client id (x-rh-clientid)
+    value: ''
+  - name: CLIENTS_BOP_ENV
+    description: Back Office Proxy environment header (x-rh-insights-env)
     value: ''
   - name: JFROG_BRIDGE_ENABLED
     description: Whether the JFrog bridge Kafka consumer should be enabled

@@ -163,6 +163,16 @@ clients:
         file_prefix:
     # JSON document from vault app-interface/lightwell-stams/<env>/mappings, key mappings.
     clearinghouse_mappings: ''
+    # JSON array of addresses emailed when a submitted clearinghouse CID has no TAM.
+    # Env: LIGHTWELL_DEFAULT_TAM_EMAILS
+    default_tam_emails: '[]'
+  # Back Office Proxy. Resolves TAM usernames to email addresses and sends the submission notice.
+  bop:
+    server:
+    api_token:
+    client_id:
+    env:
+    sender: '"Lightwell" noreply@redhat.com'
   pulp_log_parser:
     cloudwatch:
       key:
