@@ -48,6 +48,9 @@ func (s *ClearinghouseSuite) SetupTest() {
 	config.Get().Clients.Lightwell.ClearinghouseMapping = config.ParseClearinghouseMappings(
 		`{"CidOrgId":{"CID-00000":"` + test_handler.MockOrgId + `"},"CidTam":{"CID-00000":["user"]}}`,
 	)
+	savedNotify := notifySubmitted
+	notifySubmitted = func(context.Context, string) error { return nil }
+	s.T().Cleanup(func() { notifySubmitted = savedNotify })
 }
 
 func (s *ClearinghouseSuite) TearDownTest() {
@@ -676,6 +679,12 @@ func (s *ClearinghouseSuite) TestSubmit() {
 		})
 	s.reg.ClearinghouseUpload.On("ListFiles", mock.Anything, id).Return(files, nil).Once()
 
+	var notified []string
+	notifySubmitted = func(_ context.Context, orgID string) error {
+		notified = append(notified, orgID)
+		return nil
+	}
+
 	code, body := s.serve(clearinghouseRequest(s.T(), http.MethodPost, "/clearinghouse/submissions/"+id.String()+"/submit"))
 	s.Require().Equal(http.StatusOK, code, string(body))
 	var fetched api.ClearinghouseSubmission
@@ -684,6 +693,7 @@ func (s *ClearinghouseSuite) TestSubmit() {
 	s.NotContains(string(body), `"cid"`)
 	s.Require().NotNil(fetched.SubmittedBy)
 	s.Equal("user", *fetched.SubmittedBy)
+	s.Equal([]string{test_handler.MockOrgId}, notified)
 	s.Require().NotNil(fetched.SubmittedAt)
 	s.False(fetched.SubmittedAt.IsZero())
 	s.Len(fetched.Files, 3)

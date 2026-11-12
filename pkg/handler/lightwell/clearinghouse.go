@@ -24,6 +24,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/labstack/echo/v4"
 	"github.com/redhatinsights/platform-go-middlewares/v2/identity"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -382,6 +383,9 @@ func (h *ClearinghouseHandler) submitSubmission(c echo.Context) error {
 			return ce.NewErrorResponse(http.StatusConflict, "Cannot submit clearinghouse submission", "Submission has been submitted and can no longer be changed")
 		}
 		return clearinghouseStoreError(err, "Error submitting clearinghouse submission")
+	}
+	if err := notifySubmitted(c.Request().Context(), updated.OrgID); err != nil {
+		log.Error().Err(err).Str("org_id", updated.OrgID).Msg("failed to email TAMs about a clearinghouse submission")
 	}
 	files, err := h.Uploads.ListFiles(c.Request().Context(), upload.UUID)
 	if err != nil {
